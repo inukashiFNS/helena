@@ -21,7 +21,11 @@ for opt, arg in opts:
 
 
 #arguments
+# NOTE: incorporate range into -b or -r
 '''
+
+file.py CIPHER[-e,-d,-b] KEY[-k] INPUT[-iF,-iT] OUTPUT[-oF, -oT]
+
 -iF = input file
 -iT = input text
 -oF = output file
@@ -49,14 +53,11 @@ banner = r'''
 '''
 
 # argument variables
-cipherfile = None
-ciphertext = None
-plainfile = None
-#plaintext = None
 key = None
-encryption = None
-decryption = None
-bruteforce = None
+input_file = None
+input_text = None
+output_file = None
+output_text = None
 
 # symbols that can't be processed through the caesar cipher
 symbols = ['\n', '\t', ' ', '.', '?', '!', ',', '/', '\\', '<', '>', '|',
@@ -78,11 +79,11 @@ def encrpyt_caesar(plain_content, encryption_key):   #encryption_key is the shif
         if character in symbols:
             output += character
         elif character.isupper():
-            output += chr((ord(character) + encryption_key - 65) % 26 + 65)
+            output += chr((ord(character) + int(encryption_key) - 65) % 26 + 65)
         else:
-            output += chr((ord(character) + encryption_key - 97) % 26 + 97)
+            output += chr((ord(character) + int(encryption_key) - 97) % 26 + 97)
 
-    # NOTE: match lengths of ciphertext to see if any extra characters exist
+    # NOTE: match lengths of input_text to see if any extra characters exist
     # remove extra character
     text_length = len(output)
     for num in range(0, text_length):
@@ -90,39 +91,32 @@ def encrpyt_caesar(plain_content, encryption_key):   #encryption_key is the shif
             output_text += output[num]
 
     #output content
-    if cipherfile == None:
+    if input_file == None:
         print(output_text)
     else:
-        with open(cipherfile, 'w') as f:
+        with open(input_file, 'w') as f:
             f.write(output_text)
 
 #parse all arguments
 def parser():
-    opts, args = getopt.getopt(sys.argv[1:], "iF:iT:o:k:e:d:b:", ['inputFile','inputText', 'outputFile','key','encrypt','decrypt','bruteforce'])
+    opts, args = getopt.getopt(sys.argv[2:], "k:iF:iT:oF:oT", ['key','inputFile','inputText', 'outputFile','outputText'])
 
     for opt, arg in opts:
         # inputflags
-        if opt == "-iF" or  opt == "--inputFile":
-            cipherfile = arg
+        if opt == "-iF" or opt == "--inputFile":
+            input_file = arg
         if opt == "-iT" or opt == "--inputText":
-            ciphertext = arg
+            input_text = arg
         #output flags
-        if opt == "-o" or opt == "--outputFile":
-            plainfile = arg
-        # if opt == "-oT" or opt =="--outputText":
-        #     plaintext = arg
+        if opt == "-oF" or opt == "--outputFile":
+            output_file = arg
+        if opt == "-oT" or opt == "--outputText":
+            output_text = arg
         # ciphering flags
         if opt == "-k" or opt == "--key":
             key = int(arg)
-        # TODO: make em kwargs
-        if opt == "-e" or opt == "--encypt":
-            encryption = True
-        if opt == "-d" or opt == "--decrypt":
-            decryption = True
-        if opt == "-b" or opt == "--bruteforce":
-            bruteforce = True
 
-    return (cipherfile, ciphertext, plainfile, key, encryption, decryption, bruteforce)
+    return (key, input_file, input_text, output_file, output_text)
 
 # cli 
 def cli(argument_check):
@@ -130,28 +124,36 @@ def cli(argument_check):
     print(f"{banner}\n\n")
 
     # check for arguments
-    arguments = parser()
+    # TODO: check if args are empty
     if argument_check == True:
+        arguments = parser()
+        ciphering_process = sys.argv[1]
+        if ciphering_process == '-e':
+            encrpyt_caesar()
+        if ciphering_process == '-d':
+            pass  # decrypt caesar
+        if ciphering_process == '-b':
+            pass  # bruteforce caesar
         # check for file input
-        if arguments[0] != None:
-            readfile = open(arguments[0]).read()
-            # encrypt file option
-            if arguments[4] == True:
-                encrpyt_caesar(readfile, arguments[3])
-            # TODO: incorporate other cipher options here
-        else:
-            if arguments[4] == True:
-                encrpyt_caesar(arguments[1], arguments[3])
+        # if arguments[0] != None:
+        #     readfile = open(arguments[0]).read()
+        #     # encrypt file option
+        #     if arguments[4] == True:
+        #         encrpyt_caesar(readfile, arguments[3])
+        #     # TODO: incorporate other cipher options here
+        # else:
+        #     if arguments[4] == True:
+        #         encrpyt_caesar(arguments[1], arguments[3])
     else:
         # display options
-        print("Options:\n\teF) Encrpty File\n\teT - Encrypt Text\n\tdF - Decrypt File\n\tdT - Decrypt Text\n\tbF - Bruteforce File\n\tbT - Bruteforce Text\n")
+        print("Options:\n\teF - Encrpty File\n\teT - Encrypt Text\n\tdF - Decrypt File\n\tdT - Decrypt Text\n\tbF - Bruteforce File\n\tbT - Bruteforce Text\n")
         option = input(f'{path}[~] Option : ')
 
         # option to encrypt file
         if option == 'eF':
-            plainfile_input = input(f'{path}[~] Enter File Name : ')
+            output_file_input = input(f'{path}[~] Enter File Name : ')
             shift_key = input(f'{path}[~] Enter Encrpytion Key : ')
-            encrpyt_caesar(plainfile_input, shift_key)
+            encrpyt_caesar(output_file_input, shift_key)
 
 
 # main function for caesar cipher
